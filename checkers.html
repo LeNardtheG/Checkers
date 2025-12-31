@@ -1,3 +1,58 @@
+
+Search agents...
+
+
+New Agent
+Today
+
+Checkers game implementation
+2m
++233
+-3
+·
+Checkers
+Yesterday
+
+Snakes and ladders game
+20h
++1014
+-734
+·
+Cursor-Repository
+
+LeNardtheG/Checkers
+Checkers game implementation
+
+View PR
+
+Create a new file named checkers.html.
+
+Build a single-page website that implements a playable Checkers game.
+
+Requirements:
+- Title centered above the board: "LeNard's Board Game"
+- Standard 8×8 checkers board
+- One side uses red pieces, the other black pieces
+- Board takes ~70% of the screen width
+- Controls/rules take ~20% of the screen width
+- Simple layout (not dashboard-looking)
+- All CSS inside <style>
+- All JavaScript inside <script>
+- Must work by opening checkers.html locally in a browser (file://)
+
+Output one complete HTML document starting with <!DOCTYPE html> and ending with </html>.
+
+
+
+
+
+
+
+Worked for 3m 2s
+Here’s the complete checkers.html document (also saved as /workspace/checkers.html):
+
+/workspace/checkers.html
+Lines 1-689
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +74,7 @@
       --hint: rgba(43,108,176,.25);
       --danger: #b83232;
     }
-
+ 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body{
@@ -28,13 +83,13 @@
       color: var(--ink);
       background: var(--bg);
     }
-
+ 
     .page{
       max-width: 1200px;
       margin: 0 auto;
       padding: 18px 16px 28px;
     }
-
+ 
     h1{
       margin: 6px 0 16px;
       text-align: center;
@@ -42,28 +97,28 @@
       letter-spacing: .2px;
       font-weight: 750;
     }
-
+ 
     .layout{
       display: flex;
       gap: 18px;
       align-items: flex-start;
     }
-
+ 
     /* ~70% board, ~20% controls; remaining space is the gap/margins */
     .board-area{ flex: 0 1 70%; min-width: 320px; }
     .side-area{ flex: 0 0 20%; min-width: 240px; }
-
+ 
     .card{
       background: var(--panel);
       border-radius: 14px;
       box-shadow: var(--shadow);
       border: 1px solid rgba(0,0,0,.06);
     }
-
+ 
     .board-wrap{
       padding: 14px;
     }
-
+ 
     .board{
       width: 100%;
       aspect-ratio: 1 / 1;
@@ -76,7 +131,7 @@
       user-select: none;
       background: #fff;
     }
-
+ 
     .square{
       position: relative;
       border: 0;
@@ -87,16 +142,16 @@
       cursor: pointer;
       background: var(--square-light);
     }
-
+ 
     .square.dark{ background: var(--square-dark); }
     .square.light{ cursor: default; }
-
+ 
     .square:focus-visible{
       outline: 3px solid rgba(43,108,176,.6);
       outline-offset: -3px;
       z-index: 2;
     }
-
+ 
     .square.selected::after{
       content: "";
       position: absolute;
@@ -105,7 +160,7 @@
       box-shadow: 0 0 0 3px rgba(255,255,255,.65) inset, 0 0 0 3px rgba(43,108,176,.55);
       pointer-events: none;
     }
-
+ 
     .square.hint::before{
       content: "";
       position: absolute;
@@ -114,7 +169,7 @@
       background: var(--hint);
       pointer-events: none;
     }
-
+ 
     .square.capture-hint::before{
       content: "";
       position: absolute;
@@ -123,7 +178,7 @@
       background: rgba(184,50,50,.22);
       pointer-events: none;
     }
-
+ 
     .piece{
       width: 72%;
       height: 72%;
@@ -132,19 +187,19 @@
       box-shadow: 0 6px 10px rgba(0,0,0,.25);
       border: 2px solid rgba(255,255,255,.2);
     }
-
+ 
     .piece.red{
       background:
         radial-gradient(circle at 35% 30%, rgba(255,255,255,.25), rgba(255,255,255,0) 40%),
         linear-gradient(to bottom right, #e13a45, var(--red));
     }
-
+ 
     .piece.black{
       background:
         radial-gradient(circle at 35% 30%, rgba(255,255,255,.22), rgba(255,255,255,0) 40%),
         linear-gradient(to bottom right, #3a3a3a, var(--black));
     }
-
+ 
     .piece.king::after{
       content: "K";
       position: absolute;
@@ -157,21 +212,21 @@
       text-shadow: 0 2px 4px rgba(0,0,0,.45);
       letter-spacing: .3px;
     }
-
+ 
     .piece.selectable{
       outline: 3px solid rgba(255,255,255,.35);
       outline-offset: 0;
     }
-
+ 
     .piece.not-your-turn{
       opacity: .86;
       filter: grayscale(.08);
     }
-
+ 
     .side{
       padding: 14px 14px 12px;
     }
-
+ 
     .status{
       padding: 10px 12px;
       border-radius: 12px;
@@ -179,7 +234,7 @@
       border: 1px solid rgba(43,108,176,.20);
       margin-bottom: 10px;
     }
-
+ 
     .status-row{
       display: flex;
       justify-content: space-between;
@@ -187,10 +242,10 @@
       align-items: baseline;
       margin: 0;
     }
-
+ 
     .status strong{ font-weight: 800; }
     .status small{ color: var(--muted); }
-
+ 
     .winner{
       margin-top: 10px;
       padding: 10px 12px;
@@ -201,14 +256,14 @@
       font-weight: 800;
       display: none;
     }
-
+ 
     .controls{
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
       margin: 10px 0 10px;
     }
-
+ 
     button{
       border: 1px solid rgba(0,0,0,.12);
       background: #fff;
@@ -219,7 +274,7 @@
     }
     button:hover{ background: rgba(0,0,0,.03); }
     button:active{ transform: translateY(1px); }
-
+ 
     .rules{
       margin-top: 8px;
       color: var(--ink);
@@ -254,7 +309,7 @@
     }
     .dot.red{ background: var(--red); }
     .dot.black{ background: var(--black); }
-
+ 
     .kbd{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: .9em;
@@ -264,7 +319,7 @@
       background: rgba(0,0,0,.03);
       color: var(--ink);
     }
-
+ 
     @media (max-width: 900px){
       .layout{ flex-direction: column; }
       .board-area{ flex-basis: auto; width: 100%; }
@@ -275,14 +330,14 @@
 <body>
   <div class="page">
     <h1>LeNard's Board Game</h1>
-
+ 
     <div class="layout">
       <div class="board-area">
         <div class="card board-wrap">
           <div id="board" class="board" role="grid" aria-label="Checkers board"></div>
         </div>
       </div>
-
+ 
       <aside class="side-area">
         <div class="card side">
           <div class="status" aria-live="polite">
@@ -290,14 +345,14 @@
             <p class="status-row"><strong>Must capture</strong> <span id="mustCaptureLabel">—</span></p>
             <p class="status-row"><strong>Selected</strong> <span id="selectedLabel"><small>None</small></span></p>
           </div>
-
+ 
           <div id="winnerBanner" class="winner" role="status"></div>
-
+ 
           <div class="controls">
             <button id="newGameBtn" type="button">New Game</button>
             <button id="clearSelBtn" type="button" title="Unselect current piece">Clear Selection</button>
           </div>
-
+ 
           <div class="rules">
             <h2>How to play</h2>
             <ul>
@@ -307,7 +362,7 @@
               <li><strong>Multi-jumps</strong>: after a capture, keep jumping if possible.</li>
               <li><strong>Kinging</strong>: reach the far edge to become a King (<span class="kbd">K</span>).</li>
             </ul>
-
+ 
             <div class="legend" aria-label="Piece colors">
               <div class="dot red"></div><div><strong>Red</strong> starts</div>
               <div class="dot black"></div><div><strong>Black</strong> goes second</div>
@@ -317,12 +372,12 @@
       </aside>
     </div>
   </div>
-
+ 
   <script>
     (() => {
       /** @typedef {{color: 'red'|'black', king: boolean}} Piece */
       /** @typedef {{from:{r:number,c:number}, to:{r:number,c:number}, capture:null|{r:number,c:number}}} Move */
-
+ 
       const boardEl = document.getElementById('board');
       const turnLabel = document.getElementById('turnLabel');
       const mustCaptureLabel = document.getElementById('mustCaptureLabel');
@@ -330,7 +385,7 @@
       const winnerBanner = document.getElementById('winnerBanner');
       const newGameBtn = document.getElementById('newGameBtn');
       const clearSelBtn = document.getElementById('clearSelBtn');
-
+ 
       /** @type {(Piece|null)[][]} */
       let board = [];
       /** @type {'red'|'black'} */
@@ -342,23 +397,23 @@
       let forcedCapture = false;
       let continuingJump = false;
       let gameOver = false;
-
+ 
       function inBounds(r, c) {
         return r >= 0 && r < 8 && c >= 0 && c < 8;
       }
-
+ 
       function isDarkSquare(r, c) {
         return (r + c) % 2 === 1;
       }
-
+ 
       function opponent(color) {
         return color === 'red' ? 'black' : 'red';
       }
-
+ 
       function cloneBoard(b) {
         return b.map(row => row.map(p => (p ? ({ color: p.color, king: p.king }) : null)));
       }
-
+ 
       function initBoard() {
         board = Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => null));
         // Black on rows 0..2, Red on rows 5..7, on dark squares.
@@ -373,12 +428,12 @@
           }
         }
       }
-
+ 
       /** @returns {{captures: Move[], quiet: Move[]}} */
       function getMovesForPiece(r, c, b) {
         const piece = b[r][c];
         if (!piece) return { captures: [], quiet: [] };
-
+ 
         const dirs = [];
         if (piece.king) {
           dirs.push([-1, -1], [-1, 1], [1, -1], [1, 1]);
@@ -386,12 +441,12 @@
           const dr = piece.color === 'red' ? -1 : 1;
           dirs.push([dr, -1], [dr, 1]);
         }
-
+ 
         /** @type {Move[]} */
         const quiet = [];
         /** @type {Move[]} */
         const captures = [];
-
+ 
         for (const [dr, dc] of dirs) {
           const r1 = r + dr, c1 = c + dc;
           if (inBounds(r1, c1) && b[r1][c1] === null) {
@@ -405,17 +460,17 @@
             }
           }
         }
-
+ 
         return { captures, quiet };
       }
-
+ 
       /** @returns {{moves: Move[], forcedCapture: boolean}} */
       function getAllLegalMoves(color, b) {
         /** @type {Move[]} */
         const captures = [];
         /** @type {Move[]} */
         const quiet = [];
-
+ 
         for (let r = 0; r < 8; r++) {
           for (let c = 0; c < 8; c++) {
             const p = b[r][c];
@@ -428,7 +483,7 @@
         if (captures.length > 0) return { moves: captures, forcedCapture: true };
         return { moves: quiet, forcedCapture: false };
       }
-
+ 
       function countPieces(color, b) {
         let n = 0;
         for (let r = 0; r < 8; r++) {
@@ -439,32 +494,32 @@
         }
         return n;
       }
-
+ 
       function coordLabel(pos) {
         // Human-ish: a1 at bottom-left for Red's perspective.
         const file = String.fromCharCode('a'.charCodeAt(0) + pos.c);
         const rank = 8 - pos.r;
         return `${file}${rank}`;
       }
-
+ 
       function setWinner(text) {
         winnerBanner.textContent = text;
         winnerBanner.style.display = 'block';
         gameOver = true;
       }
-
+ 
       function clearWinner() {
         winnerBanner.textContent = '';
         winnerBanner.style.display = 'none';
         gameOver = false;
       }
-
+ 
       function refreshLegalMoves() {
         const res = getAllLegalMoves(currentPlayer, board);
         legalMoves = res.moves;
         forcedCapture = res.forcedCapture;
       }
-
+ 
       function updateStatusUI() {
         const turnText = currentPlayer === 'red' ? 'Red' : 'Black';
         turnLabel.textContent = turnText;
@@ -475,18 +530,18 @@
           selectedLabel.textContent = coordLabel(selected);
         }
       }
-
+ 
       function movesFromSelected() {
         if (!selected) return [];
         return legalMoves.filter(m => m.from.r === selected.r && m.from.c === selected.c);
       }
-
+ 
       function clearSelection() {
         selected = null;
         continuingJump = false;
         render();
       }
-
+ 
       function maybeEndGame() {
         const opp = opponent(currentPlayer);
         const oppPieces = countPieces(opp, board);
@@ -494,7 +549,7 @@
           setWinner(`${currentPlayer === 'red' ? 'Red' : 'Black'} wins (no opponent pieces left).`);
           return true;
         }
-
+ 
         const oppMoves = getAllLegalMoves(opp, board).moves;
         if (oppMoves.length === 0) {
           setWinner(`${currentPlayer === 'red' ? 'Red' : 'Black'} wins (opponent has no legal moves).`);
@@ -502,22 +557,22 @@
         }
         return false;
       }
-
+ 
       function applyMove(move) {
         const piece = board[move.from.r][move.from.c];
         if (!piece) return;
-
+ 
         // Move piece.
         board[move.from.r][move.from.c] = null;
         board[move.to.r][move.to.c] = piece;
-
+ 
         // Remove captured piece if any.
         let didCapture = false;
         if (move.capture) {
           board[move.capture.r][move.capture.c] = null;
           didCapture = true;
         }
-
+ 
         // Kinging check.
         let becameKingNow = false;
         if (!piece.king) {
@@ -529,7 +584,7 @@
             becameKingNow = true;
           }
         }
-
+ 
         if (didCapture) {
           // In American checkers, if you become king by jumping into the last row, the move ends.
           if (becameKingNow) {
@@ -542,7 +597,7 @@
             maybeEndGame();
             return;
           }
-
+ 
           // Continue jumping if possible (same piece only).
           const more = getMovesForPiece(move.to.r, move.to.c, board).captures;
           if (more.length > 0) {
@@ -556,7 +611,7 @@
             return;
           }
         }
-
+ 
         // Normal end of turn.
         continuingJump = false;
         selected = null;
@@ -566,14 +621,14 @@
         render();
         maybeEndGame();
       }
-
+ 
       function squareClick(r, c) {
         if (gameOver) return;
         if (!isDarkSquare(r, c)) return;
-
+ 
         const clickedPiece = board[r][c];
         const isOwnPiece = clickedPiece && clickedPiece.color === currentPlayer;
-
+ 
         // If we're in a forced multi-jump, only allow selecting the same piece and moving it.
         if (continuingJump) {
           if (selected && isOwnPiece && selected.r === r && selected.c === c) {
@@ -586,7 +641,7 @@
           if (move) applyMove(move);
           return;
         }
-
+ 
         // If clicking your piece, select it (only if it has legal moves under current constraints).
         if (isOwnPiece) {
           const hasMoves = legalMoves.some(m => m.from.r === r && m.from.c === c);
@@ -595,7 +650,7 @@
           render();
           return;
         }
-
+ 
         // If clicking empty square and a piece is selected, attempt move.
         if (!clickedPiece && selected) {
           const opts = movesFromSelected();
@@ -603,7 +658,7 @@
           if (move) applyMove(move);
         }
       }
-
+ 
       function render() {
         // Build board once, then only update content/classes for speed.
         if (boardEl.childElementCount !== 64) {
@@ -622,7 +677,7 @@
             }
           }
         }
-
+ 
         const hints = new Set();
         const captureHints = new Set();
         const selectedMoves = movesFromSelected();
@@ -631,17 +686,17 @@
           hints.add(key);
           if (m.capture) captureHints.add(key);
         }
-
+ 
         for (let i = 0; i < 64; i++) {
           const el = boardEl.children[i];
           const r = Number(el.dataset.r);
           const c = Number(el.dataset.c);
           const p = board[r][c];
-
+ 
           el.classList.toggle('selected', !!selected && selected.r === r && selected.c === c);
           el.classList.toggle('hint', hints.has(`${r},${c}`) && !captureHints.has(`${r},${c}`));
           el.classList.toggle('capture-hint', captureHints.has(`${r},${c}`));
-
+ 
           // Piece rendering.
           el.innerHTML = '';
           if (p) {
@@ -652,16 +707,16 @@
             pieceEl.classList.toggle('not-your-turn', p.color !== currentPlayer);
             el.appendChild(pieceEl);
           }
-
+ 
           // Only playable squares should be tabbable for sanity.
           if (!isDarkSquare(r, c)) {
             el.tabIndex = -1;
           }
         }
-
+ 
         updateStatusUI();
       }
-
+ 
       function newGame() {
         initBoard();
         currentPlayer = 'red';
@@ -672,17 +727,371 @@
         updateStatusUI();
         render();
       }
-
+ 
       // Controls.
       newGameBtn.addEventListener('click', newGame);
       clearSelBtn.addEventListener('click', clearSelection);
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') clearSelection();
       });
-
+ 
       // Start.
       newGame();
     })();
   </script>
 </body>
 </html>
+can you make the game be against a ai bot? i want to play against the computer
+
+Worked for 2m 52s
+Updated: play against the computer
+I updated checkers.html so it’s human vs AI:
+
+You play Red
+Computer plays Black
+The AI automatically moves on Black’s turn (including forced captures and multi-jumps)
+Just open checkers.html locally (file://) and start playing—Red goes first.
+
+how do i open the new version?
+Open the new version
+If you’re already viewing it in a browser: refresh the tab (Ctrl+R / Cmd+R). If it still looks old, do a hard refresh (Ctrl+Shift+R / Cmd+Shift+R).
+To open it from your file system: find the file at checkers.html and double‑click it, or right‑click → Open With → your browser.
+From a terminal (optional):
+xdg-open /workspace/checkers.html
+
+1 File Changed
+
+checkers.html
++233
+-3
+
+
+
+Add followups
+GPT-5.2
+
+
+1 File Changed
+
+
+checkers.html
+
++233
+-3
+      let legalMoves = [];
+      let forcedCapture = false;
+      let continuingJump = false;
+      let gameOver = false;
+      const vsComputer = true;
+      /** @type {'red'|'black'} */
+      const computerColor = 'black';
+      let aiThinking = false;
+
+      function inBounds(r, c) {
+        return r >= 0 && r < 8 && c >= 0 && c < 8;
+      }
+      function cloneBoard(b) {
+        return b.map(row => row.map(p => (p ? ({ color: p.color, king: p.king }) : null)));
+      }
+
+      function isComputerTurn() {
+        return vsComputer && currentPlayer === computerColor && !gameOver;
+      }
+
+      function initBoard() {
+        board = Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => null));
+        // Black on rows 0..2, Red on rows 5..7, on dark squares.
+        for (let r = 0; r < 3; r++) {
+      }
+
+      function updateStatusUI() {
+        const turnText = currentPlayer === 'red' ? 'Red' : 'Black';
+        turnLabel.textContent = turnText;
+        const who = (vsComputer && currentPlayer === computerColor) ? ' (Computer)' : '';
+        turnLabel.textContent = turnText + who + (aiThinking && currentPlayer === computerColor ? '…' : '');
+        mustCaptureLabel.textContent = forcedCapture ? 'Yes' : 'No';
+        if (!selected) {
+          selectedLabel.innerHTML = '<small>None</small>';
+        } else {
+            currentPlayer = opponent(currentPlayer);
+            refreshLegalMoves();
+            updateStatusUI();
+            render();
+            maybeEndGame();
+            const ended = maybeEndGame();
+            if (!ended) maybeAIMove();
+            return;
+          }
+
+          // Continue jumping if possible (same piece only).
+            legalMoves = more;
+            forcedCapture = true;
+            updateStatusUI();
+            render();
+            // If it's the computer's piece, continue automatically.
+            maybeAIMove();
+            return;
+          }
+        }
+
+        currentPlayer = opponent(currentPlayer);
+        refreshLegalMoves();
+        updateStatusUI();
+        render();
+        maybeEndGame();
+        const ended = maybeEndGame();
+        if (!ended) maybeAIMove();
+      }
+
+      function squareClick(r, c) {
+        if (isComputerTurn()) return; // human can't move during AI turn
+        if (gameOver) return;
+        if (!isDarkSquare(r, c)) return;
+
+        const clickedPiece = board[r][c];
+
+        updateStatusUI();
+      }
+
+      function applySingleMoveOnBoard(move, b) {
+        const piece = b[move.from.r][move.from.c];
+        if (!piece) return { b, to: move.to, didCapture: false, becameKingNow: false };
+
+        b[move.from.r][move.from.c] = null;
+        b[move.to.r][move.to.c] = piece;
+
+        let didCapture = false;
+        if (move.capture) {
+          b[move.capture.r][move.capture.c] = null;
+          didCapture = true;
+        }
+
+        let becameKingNow = false;
+        if (!piece.king) {
+          if (piece.color === 'red' && move.to.r === 0) {
+            piece.king = true;
+            becameKingNow = true;
+          } else if (piece.color === 'black' && move.to.r === 7) {
+            piece.king = true;
+            becameKingNow = true;
+          }
+        }
+
+        return { b, to: move.to, didCapture, becameKingNow };
+      }
+
+      function completeCaptureSequencesFrom(b, color, pos) {
+        const piece = b[pos.r][pos.c];
+        if (!piece || piece.color !== color) return [b];
+        const caps = getMovesForPiece(pos.r, pos.c, b).captures;
+        if (caps.length === 0) return [b];
+
+        /** @type {(Piece|null)[][]} */
+        const results = [];
+        for (const m of caps) {
+          const b2 = cloneBoard(b);
+          const out = applySingleMoveOnBoard(m, b2);
+          // If you became king on a capture into the last row, the move ends.
+          if (out.didCapture && out.becameKingNow) {
+            results.push(out.b);
+            continue;
+          }
+          const nextPos = { r: m.to.r, c: m.to.c };
+          const tails = completeCaptureSequencesFrom(out.b, color, nextPos);
+          results.push(...tails);
+        }
+        return results;
+      }
+
+      function getTurnOutcomesAfterMove(b, color, move) {
+        const b1 = cloneBoard(b);
+        const out = applySingleMoveOnBoard(move, b1);
+        const nextColor = opponent(color);
+        if (out.didCapture) {
+          if (out.becameKingNow) return [{ b: out.b, next: nextColor }];
+          const pos = { r: move.to.r, c: move.to.c };
+          const endings = completeCaptureSequencesFrom(out.b, color, pos);
+          return endings.map(bb => ({ b: bb, next: nextColor }));
+        }
+        return [{ b: out.b, next: nextColor }];
+      }
+
+      function evaluateBoard(perspective, b) {
+        const me = perspective;
+        const them = opponent(me);
+        const mePieces = countPieces(me, b);
+        const themPieces = countPieces(them, b);
+        if (themPieces === 0) return 10000;
+        if (mePieces === 0) return -10000;
+
+        let material = 0;
+        let kings = 0;
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const p = b[r][c];
+            if (!p) continue;
+            const v = p.king ? 5 : 3;
+            if (p.color === me) material += v;
+            else material -= v;
+            if (p.king) kings += (p.color === me ? 1 : -1);
+          }
+        }
+
+        // Small mobility term to avoid getting stuck.
+        const meMob = getAllLegalMoves(me, b).moves.length;
+        const themMob = getAllLegalMoves(them, b).moves.length;
+        const mobility = (meMob - themMob) * 0.12;
+
+        return material + kings * 0.35 + mobility;
+      }
+
+      function minimax(b, colorToMove, depth, perspective) {
+        const me = perspective;
+        const them = opponent(me);
+        const mePieces = countPieces(me, b);
+        const themPieces = countPieces(them, b);
+        if (mePieces === 0) return -10000;
+        if (themPieces === 0) return 10000;
+        if (depth <= 0) return evaluateBoard(perspective, b);
+
+        const all = getAllLegalMoves(colorToMove, b);
+        const moves = all.moves;
+        if (moves.length === 0) {
+          // No legal moves -> lose for side to move.
+          return colorToMove === me ? -9999 : 9999;
+        }
+
+        const maximizing = (colorToMove === me);
+        let best = maximizing ? -Infinity : Infinity;
+
+        for (const m of moves) {
+          const outcomes = getTurnOutcomesAfterMove(b, colorToMove, m);
+          // Opponent's turn after the move sequence ends.
+          for (const o of outcomes) {
+            const score = minimax(o.b, o.next, depth - 1, perspective);
+            if (maximizing) best = Math.max(best, score);
+            else best = Math.min(best, score);
+          }
+        }
+        return best;
+      }
+
+      function chooseAIMove() {
+        // During a forced continuation jump, legalMoves is already limited.
+        const moves = continuingJump ? legalMoves : getAllLegalMoves(currentPlayer, board).moves;
+        if (moves.length === 0) return null;
+        if (continuingJump) {
+          // Just pick the best immediate capture among forced options.
+          let best = -Infinity;
+          /** @type {Move[]} */
+          let bestMoves = [];
+          for (const m of moves) {
+            const outs = getTurnOutcomesAfterMove(board, currentPlayer, m);
+            // still our turn may continue, but this is a forced branch; pick best resulting eval.
+            let localBest = -Infinity;
+            for (const o of outs) localBest = Math.max(localBest, evaluateBoard(computerColor, o.b));
+            if (localBest > best + 1e-9) { best = localBest; bestMoves = [m]; }
+            else if (Math.abs(localBest - best) <= 1e-9) bestMoves.push(m);
+          }
+          return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        }
+
+        // Normal AI decision: shallow minimax with capture-sequence simulation.
+        const depth = 2;
+        let best = -Infinity;
+        /** @type {Move[]} */
+        let bestMoves = [];
+        for (const m of moves) {
+          const outcomes = getTurnOutcomesAfterMove(board, currentPlayer, m);
+          // The move can yield multiple endpoints due to multi-jump branches; assume AI picks best branch.
+          let moveScore = -Infinity;
+          for (const o of outcomes) {
+            const score = minimax(o.b, o.next, depth - 1, computerColor);
+            moveScore = Math.max(moveScore, score);
+          }
+
+          if (moveScore > best + 1e-9) {
+            best = moveScore;
+            bestMoves = [m];
+          } else if (Math.abs(moveScore - best) <= 1e-9) {
+            bestMoves.push(m);
+          }
+        }
+        return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+      }
+
+      function doAITurn() {
+        if (!isComputerTurn()) return;
+        aiThinking = true;
+        updateStatusUI();
+
+        // Let the UI paint "thinking" before moving.
+        setTimeout(() => {
+          if (!isComputerTurn()) { aiThinking = false; updateStatusUI(); return; }
+
+          // Ensure legal moves are current (may have changed after clear selection).
+          if (!continuingJump) {
+            const res = getAllLegalMoves(currentPlayer, board);
+            legalMoves = res.moves;
+            forcedCapture = res.forcedCapture;
+          }
+
+          // If we're continuing a jump, selected must already be the jumping piece.
+          if (!continuingJump) selected = null;
+
+          const move = chooseAIMove();
+          if (!move) {
+            aiThinking = false;
+            updateStatusUI();
+            // No legal moves; game should already be endable.
+            maybeEndGame();
+            return;
+          }
+
+          // Highlight selection briefly (optional, but keeps it readable).
+          selected = { r: move.from.r, c: move.from.c };
+          render();
+
+          setTimeout(() => {
+            aiThinking = false;
+            applyMove(move);
+            // If another forced jump is available, applyMove will keep currentPlayer the same
+            // and set continuingJump=true; we trigger again via maybeAIMove().
+          }, 140);
+        }, 220);
+      }
+
+      function maybeAIMove() {
+        if (!vsComputer) return;
+        if (!isComputerTurn()) return;
+        if (aiThinking) return;
+        doAITurn();
+      }
+
+      function newGame() {
+        initBoard();
+        currentPlayer = 'red';
+        selected = null;
+        clearWinner();
+        refreshLegalMoves();
+        updateStatusUI();
+        render();
+        maybeAIMove();
+      }
+
+      // Controls.
+      newGameBtn.addEventListener('click', newGame);
+Requires on-demand usage to be enabled
+
+Launching a cloud agent requires on-demand usage to be enabled. Select a limit to continue.
+
+$ 
+Cancel
+Enable
+Privacy Mode change required
+
+Cloud agents require code storage to function properly. Your current privacy mode prevents this. To use cloud agents, please update your privacy mode in settings to allow code storage.
+
+Cancel
+Open settings
+

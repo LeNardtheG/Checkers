@@ -342,6 +342,10 @@
       let forcedCapture = false;
       let continuingJump = false;
       let gameOver = false;
+      const vsComputer = true;
+      /** @type {'red'|'black'} */
+      const computerColor = 'black';
+      let aiThinking = false;
 
       function inBounds(r, c) {
         return r >= 0 && r < 8 && c >= 0 && c < 8;
@@ -357,6 +361,10 @@
 
       function cloneBoard(b) {
         return b.map(row => row.map(p => (p ? ({ color: p.color, king: p.king }) : null)));
+      }
+
+      function isComputerTurn() {
+        return vsComputer && currentPlayer === computerColor && !gameOver;
       }
 
       function initBoard() {
@@ -467,7 +475,8 @@
 
       function updateStatusUI() {
         const turnText = currentPlayer === 'red' ? 'Red' : 'Black';
-        turnLabel.textContent = turnText;
+        const who = (vsComputer && currentPlayer === computerColor) ? ' (Computer)' : '';
+        turnLabel.textContent = turnText + who + (aiThinking && currentPlayer === computerColor ? '…' : '');
         mustCaptureLabel.textContent = forcedCapture ? 'Yes' : 'No';
         if (!selected) {
           selectedLabel.innerHTML = '<small>None</small>';
@@ -539,7 +548,8 @@
             refreshLegalMoves();
             updateStatusUI();
             render();
-            maybeEndGame();
+            const ended = maybeEndGame();
+            if (!ended) maybeAIMove();
             return;
           }
 
@@ -553,6 +563,8 @@
             forcedCapture = true;
             updateStatusUI();
             render();
+            // If it's the computer's piece, continue automatically.
+            maybeAIMove();
             return;
           }
         }
@@ -564,10 +576,12 @@
         refreshLegalMoves();
         updateStatusUI();
         render();
-        maybeEndGame();
+        const ended = maybeEndGame();
+        if (!ended) maybeAIMove();
       }
 
       function squareClick(r, c) {
+        if (isComputerTurn()) return; // human can't move during AI turn
         if (gameOver) return;
         if (!isDarkSquare(r, c)) return;
 
@@ -662,6 +676,221 @@
         updateStatusUI();
       }
 
+      function applySingleMoveOnBoard(move, b) {
+        const piece = b[move.from.r][move.from.c];
+        if (!piece) return { b, to: move.to, didCapture: false, becameKingNow: false };
+
+        b[move.from.r][move.from.c] = null;
+        b[move.to.r][move.to.c] = piece;
+
+        let didCapture = false;
+        if (move.capture) {
+          b[move.capture.r][move.capture.c] = null;
+          didCapture = true;
+        }
+
+        let becameKingNow = false;
+        if (!piece.king) {
+          if (piece.color === 'red' && move.to.r === 0) {
+            piece.king = true;
+            becameKingNow = true;
+          } else if (piece.color === 'black' && move.to.r === 7) {
+            piece.king = true;
+            becameKingNow = true;
+          }
+        }
+
+        return { b, to: move.to, didCapture, becameKingNow };
+      }
+
+      function completeCaptureSequencesFrom(b, color, pos) {
+        const piece = b[pos.r][pos.c];
+        if (!piece || piece.color !== color) return [b];
+        const caps = getMovesForPiece(pos.r, pos.c, b).captures;
+        if (caps.length === 0) return [b];
+
+        /** @type {(Piece|null)[][]} */
+        const results = [];
+        for (const m of caps) {
+          const b2 = cloneBoard(b);
+          const out = applySingleMoveOnBoard(m, b2);
+          // If you became king on a capture into the last row, the move ends.
+          if (out.didCapture && out.becameKingNow) {
+            results.push(out.b);
+            continue;
+          }
+          const nextPos = { r: m.to.r, c: m.to.c };
+          const tails = completeCaptureSequencesFrom(out.b, color, nextPos);
+          results.push(...tails);
+        }
+        return results;
+      }
+
+      function getTurnOutcomesAfterMove(b, color, move) {
+        const b1 = cloneBoard(b);
+        const out = applySingleMoveOnBoard(move, b1);
+        const nextColor = opponent(color);
+        if (out.didCapture) {
+          if (out.becameKingNow) return [{ b: out.b, next: nextColor }];
+          const pos = { r: move.to.r, c: move.to.c };
+          const endings = completeCaptureSequencesFrom(out.b, color, pos);
+          return endings.map(bb => ({ b: bb, next: nextColor }));
+        }
+        return [{ b: out.b, next: nextColor }];
+      }
+
+      function evaluateBoard(perspective, b) {
+        const me = perspective;
+        const them = opponent(me);
+        const mePieces = countPieces(me, b);
+        const themPieces = countPieces(them, b);
+        if (themPieces === 0) return 10000;
+        if (mePieces === 0) return -10000;
+
+        let material = 0;
+        let kings = 0;
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const p = b[r][c];
+            if (!p) continue;
+            const v = p.king ? 5 : 3;
+            if (p.color === me) material += v;
+            else material -= v;
+            if (p.king) kings += (p.color === me ? 1 : -1);
+          }
+        }
+
+        // Small mobility term to avoid getting stuck.
+        const meMob = getAllLegalMoves(me, b).moves.length;
+        const themMob = getAllLegalMoves(them, b).moves.length;
+        const mobility = (meMob - themMob) * 0.12;
+
+        return material + kings * 0.35 + mobility;
+      }
+
+      function minimax(b, colorToMove, depth, perspective) {
+        const me = perspective;
+        const them = opponent(me);
+        const mePieces = countPieces(me, b);
+        const themPieces = countPieces(them, b);
+        if (mePieces === 0) return -10000;
+        if (themPieces === 0) return 10000;
+        if (depth <= 0) return evaluateBoard(perspective, b);
+
+        const all = getAllLegalMoves(colorToMove, b);
+        const moves = all.moves;
+        if (moves.length === 0) {
+          // No legal moves -> lose for side to move.
+          return colorToMove === me ? -9999 : 9999;
+        }
+
+        const maximizing = (colorToMove === me);
+        let best = maximizing ? -Infinity : Infinity;
+
+        for (const m of moves) {
+          const outcomes = getTurnOutcomesAfterMove(b, colorToMove, m);
+          // Opponent's turn after the move sequence ends.
+          for (const o of outcomes) {
+            const score = minimax(o.b, o.next, depth - 1, perspective);
+            if (maximizing) best = Math.max(best, score);
+            else best = Math.min(best, score);
+          }
+        }
+        return best;
+      }
+
+      function chooseAIMove() {
+        // During a forced continuation jump, legalMoves is already limited.
+        const moves = continuingJump ? legalMoves : getAllLegalMoves(currentPlayer, board).moves;
+        if (moves.length === 0) return null;
+        if (continuingJump) {
+          // Just pick the best immediate capture among forced options.
+          let best = -Infinity;
+          /** @type {Move[]} */
+          let bestMoves = [];
+          for (const m of moves) {
+            const outs = getTurnOutcomesAfterMove(board, currentPlayer, m);
+            // still our turn may continue, but this is a forced branch; pick best resulting eval.
+            let localBest = -Infinity;
+            for (const o of outs) localBest = Math.max(localBest, evaluateBoard(computerColor, o.b));
+            if (localBest > best + 1e-9) { best = localBest; bestMoves = [m]; }
+            else if (Math.abs(localBest - best) <= 1e-9) bestMoves.push(m);
+          }
+          return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        }
+
+        // Normal AI decision: shallow minimax with capture-sequence simulation.
+        const depth = 2;
+        let best = -Infinity;
+        /** @type {Move[]} */
+        let bestMoves = [];
+        for (const m of moves) {
+          const outcomes = getTurnOutcomesAfterMove(board, currentPlayer, m);
+          // The move can yield multiple endpoints due to multi-jump branches; assume AI picks best branch.
+          let moveScore = -Infinity;
+          for (const o of outcomes) {
+            const score = minimax(o.b, o.next, depth - 1, computerColor);
+            moveScore = Math.max(moveScore, score);
+          }
+
+          if (moveScore > best + 1e-9) {
+            best = moveScore;
+            bestMoves = [m];
+          } else if (Math.abs(moveScore - best) <= 1e-9) {
+            bestMoves.push(m);
+          }
+        }
+        return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+      }
+
+      function doAITurn() {
+        if (!isComputerTurn()) return;
+        aiThinking = true;
+        updateStatusUI();
+
+        // Let the UI paint "thinking" before moving.
+        setTimeout(() => {
+          if (!isComputerTurn()) { aiThinking = false; updateStatusUI(); return; }
+
+          // Ensure legal moves are current (may have changed after clear selection).
+          if (!continuingJump) {
+            const res = getAllLegalMoves(currentPlayer, board);
+            legalMoves = res.moves;
+            forcedCapture = res.forcedCapture;
+          }
+
+          // If we're continuing a jump, selected must already be the jumping piece.
+          if (!continuingJump) selected = null;
+
+          const move = chooseAIMove();
+          if (!move) {
+            aiThinking = false;
+            updateStatusUI();
+            // No legal moves; game should already be endable.
+            maybeEndGame();
+            return;
+          }
+
+          // Highlight selection briefly (optional, but keeps it readable).
+          selected = { r: move.from.r, c: move.from.c };
+          render();
+
+          setTimeout(() => {
+            aiThinking = false;
+            applyMove(move);
+            // If another forced jump is available, applyMove will keep currentPlayer the same
+            // and set continuingJump=true; we trigger again via maybeAIMove().
+          }, 140);
+        }, 220);
+      }
+
+      function maybeAIMove() {
+        if (!vsComputer) return;
+        if (!isComputerTurn()) return;
+        if (aiThinking) return;
+        doAITurn();
+      }
+
       function newGame() {
         initBoard();
         currentPlayer = 'red';
@@ -671,6 +900,7 @@
         refreshLegalMoves();
         updateStatusUI();
         render();
+        maybeAIMove();
       }
 
       // Controls.
